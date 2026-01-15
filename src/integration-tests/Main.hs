@@ -1,5 +1,6 @@
 module Main (main) where
 
+import Database.PostgreSQL.Simple.PostgresqlTypes ()
 import Main.Helpers
 import qualified PostgresqlTypes.Types as Pt
 import Test.Hspec
@@ -22,7 +23,7 @@ main =
           withType @Pt.Date [mappingSpec]
           withType @Pt.Float4 [mappingSpec]
           withType @Pt.Float8 [mappingSpec]
-          withType @Pt.Hstore [mappingSpec, hstoreMetadataSpec]
+          withType @Pt.Hstore [mappingSpec]
           withType @Pt.Inet [mappingSpec]
           withType @Pt.Int2 [mappingSpec]
           withType @Pt.Int4 [mappingSpec]
