@@ -13,6 +13,7 @@ import qualified Database.PostgreSQL.Simple as PG
 import qualified Database.PostgreSQL.Simple.FromField as PG
 import qualified Database.PostgreSQL.Simple.PostgresqlTypes ()
 import qualified Database.PostgreSQL.Simple.ToField as PG
+import qualified Database.PostgreSQL.Simple.Types as PG
 import qualified PostgresqlTypes as PostgresqlTypes
 import Test.Hspec
 import Test.QuickCheck ((.&&.), (===))
@@ -105,7 +106,7 @@ mappingSpec _ =
 
           describe "NULL handling" do
             it "Should handle NULL values appropriately" \(connection :: PG.Connection) -> do
-              results <- PG.query connection "SELECT NULL" PG.Only
+              results <- PG.query_ connection "SELECT NULL"
               case results of
                 [PG.Only (maybeValue :: Maybe a)] -> do
                   maybeValue `shouldBe` Nothing
@@ -115,16 +116,16 @@ mappingSpec _ =
           describe "OID validation" do
             it "Should validate base and array OIDs" \(connection :: PG.Connection) -> do
               -- Query the database for OID information
-              let oidQuery = "SELECT oid, typarray FROM pg_type WHERE typname = ?"
-              oidResults <- PG.query connection oidQuery (PG.Only typeName) :: IO [(Word32, Word32)]
+              let oidQuery = "SELECT oid::int4, typarray::int4 FROM pg_type WHERE typname = ?"
+              oidResults <- PG.query connection oidQuery (PG.Only typeName) :: IO [(Int, Int)]
 
               case oidResults of
                 [(actualBaseOid, actualArrayOid)] -> do
                   case maybeBaseOid of
-                    Just expectedBaseOid -> actualBaseOid `shouldBe` expectedBaseOid
+                    Just expectedBaseOid -> fromIntegral actualBaseOid `shouldBe` expectedBaseOid
                     Nothing -> actualBaseOid `shouldSatisfy` (> 0) -- Just verify OID exists
                   case maybeArrayOid of
-                    Just expectedArrayOid -> actualArrayOid `shouldBe` expectedArrayOid
+                    Just expectedArrayOid -> fromIntegral actualArrayOid `shouldBe` expectedArrayOid
                     Nothing -> actualArrayOid `shouldSatisfy` (> 0) -- Just verify OID exists
                 _ -> do
                   -- For types not in pg_type, skip this check
