@@ -22,13 +22,27 @@ module Database.PostgreSQL.Simple.PostgresqlTypes
 where
 
 import Data.Data (Typeable)
+import Data.Monoid
+import qualified Data.Text.Encoding as TextEncoding
 import Database.PostgreSQL.Simple.FromField (FromField)
 import Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsStandardType (ViaIsStandardType (ViaIsStandardType))
-import Database.PostgreSQL.Simple.ToField (ToField)
-import PostgresqlTypes (IsMultirangeElement, IsRangeElement)
-import PostgresqlTypes.Types
+import Database.PostgreSQL.Simple.ToField
+import PostgresqlTypes
+import qualified TextBuilder
 
-deriving via ViaIsStandardType Bit instance ToField Bit
+instance ToField Bit where
+  toField value =
+    Plain
+      ( TextEncoding.encodeUtf8Builder
+          ( TextBuilder.toText
+              ( mconcat
+                  [ "B'",
+                    textualEncoder value,
+                    "'"
+                  ]
+              )
+          )
+      )
 
 deriving via ViaIsStandardType Bit instance FromField Bit
 

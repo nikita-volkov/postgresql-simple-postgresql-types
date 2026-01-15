@@ -31,7 +31,7 @@ mappingSpec ::
   Proxy a ->
   SpecWith Ps.Connection
 mappingSpec _ =
-  let typeName = untag (PostgresqlTypes.typeName @a)
+  let _typeName = untag (PostgresqlTypes.typeName @a)
    in describe "Roundtrip" do
         describe "Single value roundtrip" do
           it "Should encode and decode to the same value" \(connection :: Ps.Connection) ->
@@ -43,7 +43,7 @@ mappingSpec _ =
                     connection
                     ( Ps.Query
                         ( Text.encodeUtf8
-                            ("SELECT (?::" <> typeName <> ")")
+                            ("SELECT (?)")
                         )
                     )
                     (Ps.Only value)
@@ -63,7 +63,7 @@ mappingSpec _ =
                     connection
                     ( Ps.Query
                         ( Text.encodeUtf8
-                            ("SELECT (?::" <> typeName <> "[])")
+                            ("SELECT (?)")
                         )
                     )
                     (Ps.Only (Ps.PGArray values))
