@@ -101,3 +101,25 @@ library
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.5,
+
+test-suite integration-tests
+  import: test
+  type: exitcode-stdio-1.0
+  hs-source-dirs: src/integration-tests
+  main-is: Main.hs
+  other-modules:
+    Main.Helpers
+
+  build-depends:
+    QuickCheck >=2.14 && <3,
+    attoparsec ^>=0.14.4,
+    base >=4.11 && <5,
+    bytestring >=0.10 && <0.13,
+    hspec >=2.11 && <3,
+    postgresql-simple >=0.7.0.1 && <0.8,
+    postgresql-simple-postgresql-types,
+    postgresql-types,
+    quickcheck-instances ^>=0.3.33,
+    tagged ^>=0.8.9,
+    testcontainers-postgresql ^>=0.2.0.1,
+    text >=1.2 && <3,
