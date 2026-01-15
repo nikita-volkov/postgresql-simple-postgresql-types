@@ -12,7 +12,6 @@ license: MIT
 license-file: LICENSE
 extra-doc-files:
   LICENSE
-  README.md
 
 source-repository head
   type: git
@@ -92,6 +91,7 @@ library
 
   other-modules:
     Database.PostgreSQL.Simple.PostgresqlTypes.Prelude
+    Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsStandardType
 
   build-depends:
     attoparsec ^>=0.14.4,
