@@ -1,27 +1,16 @@
-name: Format and test
+name: Build and Test
 
 on:
-  push:
-    branches:
-      - master
-  pull_request:
   workflow_call: 
 
-concurrency:
-  group: format-and-test
-  cancel-in-progress: true
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
-  format:
-    uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/format.yaml@v4
-    secrets: inherit
-  
   check-cabal:
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/check-cabal.yaml@v4
-    secrets: inherit
-
-  generate-docs:
-    uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/generate-docs.yaml@v4
     secrets: inherit
 
   build-with-ghc-9-2:
