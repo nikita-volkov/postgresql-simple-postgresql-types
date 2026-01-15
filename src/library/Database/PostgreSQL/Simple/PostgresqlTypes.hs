@@ -17,24 +17,26 @@
 --
 -- = How it works
 --
--- * 'toFieldVia' creates a 'ToField' compatible 'Action' using the 'textualEncoder' from 'IsStandardType'
--- * 'fromFieldVia' creates a 'FromField' compatible parser using the 'textualDecoder' from 'IsStandardType'
+-- * 'toFieldVia' creates a 'ToField' compatible 'Action' using the 'textualEncoder' from 'Pt.IsStandardType'
+-- * 'fromFieldVia' creates a 'FromField' compatible parser using the 'textualDecoder' from 'Pt.IsStandardType'
 --
 -- The module uses textual format for encoding/decoding since that's what postgresql-simple primarily uses.
 module Database.PostgreSQL.Simple.PostgresqlTypes
-  ( IsStandardType,
+  ( Pt.IsStandardType,
     toFieldVia,
     fromFieldVia,
   )
 where
 
 import qualified Data.Attoparsec.Text as Attoparsec
-import qualified Data.Text.Encoding as Text
-import Database.PostgreSQL.Simple.FromField (Conversion, FieldParser, ResultError (..), returnError)
-import qualified Database.PostgreSQL.Simple.FromField as FromField
+import qualified Data.Text as Text
+import qualified Data.Text.Encoding as TextEncoding
+import qualified Data.Text.Encoding.Error as TextEncoding
+import Database.PostgreSQL.Simple.FromField (FieldParser, ResultError (..), returnError, typeOid, typename)
 import Database.PostgreSQL.Simple.PostgresqlTypes.Prelude
 import Database.PostgreSQL.Simple.ToField (Action (..))
-import PostgresqlTypes
+import Database.PostgreSQL.Simple.Types
+import qualified PostgresqlTypes as Pt
 import qualified TextBuilder
 
 -- | Convert a postgresql-types value to a postgresql-simple 'Action'.
@@ -44,29 +46,74 @@ import qualified TextBuilder
 --
 -- > instance ToField Int4 where
 -- >   toField = toFieldVia
-toFieldVia :: forall a. (IsStandardType a) => a -> Action
+toFieldVia :: forall a. (Pt.IsStandardType a) => a -> Action
 toFieldVia value =
-  Escape (Text.encodeUtf8 (to (textualEncoder value)))
+  Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pt.textualEncoder value)))
 
 -- | Parse a postgresql-types value from a postgresql-simple field.
 --
--- This function uses the textual decoder from 'IsStandardType' to parse
+-- This function uses the textual decoder from 'Pt.IsStandardType' to parse
 -- values received from PostgreSQL in text format.
+--
+-- It validates the field's type by comparing:
+-- * The field's OID against the type's expected base OID or array OID
+-- * When OID is not statically known, falls back to comparing type names
+-- * Automatically handles array types by checking against arrayOid
 --
 -- > instance FromField Int4 where
 -- >   fromField = fromFieldVia
-fromFieldVia :: forall a. (Typeable a, IsStandardType a) => FieldParser a
-fromFieldVia field mdata = case mdata of
-  Nothing -> returnError UnexpectedNull field ""
-  Just bytes -> case Text.decodeUtf8' bytes of
-    Left err ->
-      returnError ConversionFailed field
-        $ "UTF-8 decoding failed: "
-        <> show err
-    Right text ->
-      case Attoparsec.parseOnly (textualDecoder @a <* Attoparsec.endOfInput) text of
-        Left err ->
-          returnError ConversionFailed field
-            $ "Parsing failed: "
-            <> err
-        Right value -> pure value
+fromFieldVia :: forall a. (Typeable a, Pt.IsStandardType a) => FieldParser a
+fromFieldVia field mdata = do
+  -- Type validation: check OID or name
+  let expectedBaseOid = untag (Pt.baseOid @a)
+      expectedArrayOid = untag (Pt.arrayOid @a)
+      expectedTypeName = untag (Pt.typeName @a)
+      fieldOid = typeOid field
+
+  fieldTypeName <- typename field
+
+  -- Check if this is an array type by looking at the field's typename
+  -- PostgreSQL array types start with '_'
+  let isArrayField =
+        let nameText = TextEncoding.decodeUtf8With TextEncoding.lenientDecode fieldTypeName
+         in Text.take 1 nameText == "_"
+
+      typeMatches = case (isArrayField, expectedArrayOid, expectedBaseOid) of
+        -- For array fields, check against arrayOid
+        (True, Just arrOid, _) -> fieldOid == Oid (fromIntegral arrOid)
+        -- For non-array fields, check against baseOid
+        (False, _, Just oid) -> fieldOid == Oid (fromIntegral oid)
+        -- Fallback to typename comparison when OID not available
+        _ ->
+          let expectedName = TextEncoding.encodeUtf8 (if isArrayField then "_" <> expectedTypeName else expectedTypeName)
+           in fieldTypeName == expectedName
+
+  unless typeMatches do
+    returnError Incompatible field
+      $ mconcat
+        [ "Type mismatch: expected ",
+          Text.unpack expectedTypeName,
+          " (OID ",
+          maybe "unknown" show expectedBaseOid,
+          case expectedArrayOid of
+            Just arrOid -> ", array OID " <> show arrOid
+            Nothing -> "",
+          ") but got field with OID ",
+          show fieldOid
+        ]
+
+  -- Data validation and parsing
+  case mdata of
+    Nothing -> returnError UnexpectedNull field ""
+    Just bytes -> case TextEncoding.decodeUtf8' bytes of
+      Left err ->
+        returnError ConversionFailed field
+          $ "UTF-8 decoding failed: "
+          <> show err
+      Right text ->
+        case Attoparsec.parseOnly (Pt.textualDecoder @a <* Attoparsec.endOfInput) text of
+          Left err ->
+            returnError ConversionFailed field
+              $ "Parsing failed: "
+              <> err
+          Right value -> pure value
