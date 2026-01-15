@@ -117,13 +117,12 @@ mappingSpec _ =
               -- Query the database for OID information
               let oidQuery = "SELECT oid, typarray FROM pg_type WHERE typname = ?"
               oidResults <- PG.query connection oidQuery (PG.Only typeName) :: IO [(Word32, Word32)]
-              
+
               case oidResults of
                 [(actualBaseOid, actualArrayOid)] -> do
                   case maybeBaseOid of
                     Just expectedBaseOid -> actualBaseOid `shouldBe` expectedBaseOid
                     Nothing -> actualBaseOid `shouldSatisfy` (> 0) -- Just verify OID exists
-                  
                   case maybeArrayOid of
                     Just expectedArrayOid -> actualArrayOid `shouldBe` expectedArrayOid
                     Nothing -> actualArrayOid `shouldSatisfy` (> 0) -- Just verify OID exists
