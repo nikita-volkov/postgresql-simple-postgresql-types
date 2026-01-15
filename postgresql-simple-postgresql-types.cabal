@@ -96,10 +96,8 @@ library
   build-depends:
     attoparsec ^>=0.14.4,
     base >=4.11 && <5,
-    lawful-conversions ^>=0.3,
     postgresql-simple >=0.7.0.1 && <0.8,
     postgresql-types,
     tagged ^>=0.8.9,
     text >=1.2 && <3,
-    text-builder ^>=1.0.0.4,
-    text-builder-lawful-conversions ^>=0.1.4,
+    text-builder ^>=1.0.0.5,
