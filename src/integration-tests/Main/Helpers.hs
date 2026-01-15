@@ -53,7 +53,25 @@ withConnectInfo =
 
 withConnectionPool :: Int -> SpecWith (TQueue Ps.Connection) -> SpecWith Ps.ConnectInfo
 withConnectionPool poolSize =
-  withPool poolSize Ps.connect Ps.close
+  withPool poolSize acquire Ps.close
+  where
+    acquire connectInfo = do
+      connection <- Ps.connect connectInfo
+      void do
+        Ps.execute_ connection "SET client_min_messages TO WARNING"
+      createExtensionIfNotExists connection "hstore"
+      pure connection
+      where
+        createExtensionIfNotExists connection extension =
+          handle handler do
+            void do
+              Ps.execute connection "CREATE EXTENSION IF NOT EXISTS ?" (Ps.Only (Ps.Identifier extension))
+          where
+            handler (e :: Ps.SqlError) =
+              if Ps.sqlState e == "23505"
+                && Ps.sqlErrorMsg e == "duplicate key value violates unique constraint \"pg_extension_name_index\""
+                then pure ()
+                else throwIO e
 
 withPool ::
   -- | Pool size.
