@@ -7,6 +7,7 @@ import Data.String
 import Data.Tagged
 import Data.Text (Text)
 import qualified Data.Text as Text
+import qualified Data.Text.Encoding as Text
 import Data.Typeable
 import Data.Word
 import qualified Database.PostgreSQL.Simple as PG
@@ -77,15 +78,18 @@ mappingSpec _ =
   let typeName = untag (PostgresqlTypes.typeName @a)
       maybeBaseOid = untag (PostgresqlTypes.baseOid @a)
       maybeArrayOid = untag (PostgresqlTypes.arrayOid @a)
+      -- Build the SQL query with explicit type casting to ensure proper OID handling
+      -- We cast to text first (which accepts any input), then back to the target type
+      roundtripQuery = "SELECT (?::text)::" <> typeName
+      arrayRoundtripQuery = "SELECT (?::text[])::" <> "_" <> typeName
    in describe "Roundtrip" do
         describe (Text.unpack typeName) do
           describe "Single value roundtrip" do
             it "Should encode and decode to the same value" \(connection :: PG.Connection) ->
               QuickCheck.property \(value :: a) -> do
                 QuickCheck.idempotentIOProperty do
-                  -- Use postgresql-simple to roundtrip the value
-                  -- SELECT ? sends the value and gets it back, testing both ToField and FromField
-                  results <- PG.query connection "SELECT ?" (PG.Only value)
+                  -- Use postgresql-simple to roundtrip the value with explicit type casting
+                  results <- PG.query connection (PG.Query (Text.encodeUtf8 roundtripQuery)) (PG.Only value)
                   case results of
                     [PG.Only (decoded :: a)] -> do
                       pure (decoded === value)
@@ -96,8 +100,8 @@ mappingSpec _ =
             it "Should encode and decode arrays correctly" \(connection :: PG.Connection) ->
               QuickCheck.property \(values :: [a]) -> do
                 QuickCheck.idempotentIOProperty do
-                  -- Use postgresql-simple to roundtrip array values
-                  results <- PG.query connection "SELECT ?" (PG.Only (PG.PGArray values))
+                  -- Use postgresql-simple to roundtrip array values with explicit type casting
+                  results <- PG.query connection (PG.Query (Text.encodeUtf8 arrayRoundtripQuery)) (PG.Only (PG.PGArray values))
                   case results of
                     [PG.Only (PG.PGArray (decoded :: [a]))] -> do
                       pure (decoded === values)
