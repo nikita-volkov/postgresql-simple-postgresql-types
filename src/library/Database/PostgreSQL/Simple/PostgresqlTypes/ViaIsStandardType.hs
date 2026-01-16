@@ -94,8 +94,8 @@ fromFieldVia field mdata = do
            in fieldTypeName == expectedName
 
   unless typeMatches do
-    returnError Incompatible field
-      $ mconcat
+    returnError Incompatible field $
+      mconcat
         [ "Type mismatch: expected ",
           Text.unpack expectedTypeName,
           " (OID ",
@@ -112,13 +112,11 @@ fromFieldVia field mdata = do
     Nothing -> returnError UnexpectedNull field ""
     Just bytes -> case TextEncoding.decodeUtf8' bytes of
       Left err ->
-        returnError ConversionFailed field
-          $ "UTF-8 decoding failed: "
-          <> show err
+        returnError ConversionFailed field $
+          "UTF-8 decoding failed: " <> show err
       Right text ->
         case Attoparsec.parseOnly (Pt.textualDecoder @a <* Attoparsec.endOfInput) text of
           Left err ->
-            returnError ConversionFailed field
-              $ "Parsing failed: "
-              <> err
+            returnError ConversionFailed field $
+              "Parsing failed: " <> err
           Right value -> pure value
