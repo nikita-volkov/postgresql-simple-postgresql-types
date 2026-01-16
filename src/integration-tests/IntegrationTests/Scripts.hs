@@ -41,11 +41,7 @@ mappingSpec _ =
                 results <-
                   Ps.query
                     connection
-                    ( Ps.Query
-                        ( Text.encodeUtf8
-                            ("SELECT (?)")
-                        )
-                    )
+                    "SELECT ?"
                     (Ps.Only value)
                 case results of
                   [Ps.Only (decoded :: a)] -> do
@@ -61,11 +57,7 @@ mappingSpec _ =
                 results <-
                   Ps.query
                     connection
-                    ( Ps.Query
-                        ( Text.encodeUtf8
-                            ("SELECT (?)")
-                        )
-                    )
+                    "SELECT ?"
                     (Ps.Only (Ps.PGArray values))
                 case results of
                   [Ps.Only (Ps.PGArray (decoded :: [a]))] -> do
