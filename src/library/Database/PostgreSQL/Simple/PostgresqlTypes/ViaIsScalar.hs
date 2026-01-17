@@ -2,7 +2,7 @@
 
 -- |
 -- This module provides a bridge between PostgreSQL's standard types and the postgresql-simple library,
--- offering automatic ToField and FromField instance generation for types that implement the 'IsStandardType' constraint.
+-- offering automatic ToField and FromField instance generation for types that implement the 'IsScalar' constraint.
 --
 -- = Usage
 --
@@ -19,11 +19,11 @@
 --
 -- = How it works
 --
--- * 'toFieldVia' creates a 'ToField' compatible 'Action' using the 'textualEncoder' from 'Pt.IsStandardType'
--- * 'fromFieldVia' creates a 'FromField' compatible parser using the 'textualDecoder' from 'Pt.IsStandardType'
+-- * 'toFieldVia' creates a 'ToField' compatible 'Action' using the 'textualEncoder' from 'Pta.IsScalar'
+-- * 'fromFieldVia' creates a 'FromField' compatible parser using the 'textualDecoder' from 'Pta.IsScalar'
 --
 -- The module uses textual format for encoding/decoding since that's what postgresql-simple primarily uses.
-module Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsStandardType (ViaIsStandardType (..)) where
+module Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsScalar (ViaIsScalar (..)) where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -33,34 +33,34 @@ import Database.PostgreSQL.Simple
 import Database.PostgreSQL.Simple.FromField
 import Database.PostgreSQL.Simple.PostgresqlTypes.Prelude
 import Database.PostgreSQL.Simple.ToField
-import qualified PostgresqlTypes as Pt
+import qualified PostgresqlTypes.Algebra as Pta
 import qualified TextBuilder
 
-newtype ViaIsStandardType a = ViaIsStandardType a
+newtype ViaIsScalar a = ViaIsScalar a
 
-instance (Pt.IsStandardType a) => ToField (ViaIsStandardType a) where
-  toField (ViaIsStandardType value) = toFieldVia value
+instance (Pta.IsScalar a) => ToField (ViaIsScalar a) where
+  toField (ViaIsScalar value) = toFieldVia value
 
-instance (Typeable a, Pt.IsStandardType a) => FromField (ViaIsStandardType a) where
-  fromField field mdata = ViaIsStandardType <$> fromFieldVia field mdata
+instance (Typeable a, Pta.IsScalar a) => FromField (ViaIsScalar a) where
+  fromField field mdata = ViaIsScalar <$> fromFieldVia field mdata
 
 -- | Convert a postgresql-types value to a postgresql-simple 'Action'.
 --
--- This function uses the textual encoder from 'IsStandardType' to produce
+-- This function uses the textual encoder from 'IsScalar' to produce
 -- an escaped text value suitable for use in SQL queries.
 --
 -- > instance ToField Int4 where
 -- >   toField = toFieldVia
-toFieldVia :: forall a. (Pt.IsStandardType a) => a -> Action
+toFieldVia :: forall a. (Pta.IsScalar a) => a -> Action
 toFieldVia value =
   Many
-    [ Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pt.textualEncoder value))),
-      Plain ("::" <> TextEncoding.encodeUtf8Builder (untag (Pt.typeSignature @a)))
+    [ Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pta.textualEncoder value))),
+      Plain ("::" <> TextEncoding.encodeUtf8Builder (untag (Pta.typeSignature @a)))
     ]
 
 -- | Parse a postgresql-types value from a postgresql-simple field.
 --
--- This function uses the textual decoder from 'Pt.IsStandardType' to parse
+-- This function uses the textual decoder from 'Pta.IsScalar' to parse
 -- values received from PostgreSQL in text format.
 --
 -- It validates the field's type by comparing:
@@ -70,12 +70,12 @@ toFieldVia value =
 --
 -- > instance FromField Int4 where
 -- >   fromField = fromFieldVia
-fromFieldVia :: forall a. (Typeable a, Pt.IsStandardType a) => FieldParser a
+fromFieldVia :: forall a. (Typeable a, Pta.IsScalar a) => FieldParser a
 fromFieldVia field mdata = do
   -- Type validation: check OID or name
-  let expectedBaseOid = untag (Pt.baseOid @a)
-      expectedArrayOid = untag (Pt.arrayOid @a)
-      expectedTypeName = untag (Pt.typeName @a)
+  let expectedBaseOid = untag (Pta.baseOid @a)
+      expectedArrayOid = untag (Pta.arrayOid @a)
+      expectedTypeName = untag (Pta.typeName @a)
       fieldOid = typeOid field
 
   case (expectedBaseOid, expectedArrayOid) of
@@ -118,7 +118,7 @@ fromFieldVia field mdata = do
         returnError ConversionFailed field $
           "UTF-8 decoding failed: " <> show err
       Right text ->
-        case Attoparsec.parseOnly (Pt.textualDecoder @a <* Attoparsec.endOfInput) text of
+        case Attoparsec.parseOnly (Pta.textualDecoder @a <* Attoparsec.endOfInput) text of
           Left err ->
             returnError ConversionFailed field $
               "Parsing failed: " <> err

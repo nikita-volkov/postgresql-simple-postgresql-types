@@ -23,174 +23,175 @@ where
 
 import Data.Data (Typeable)
 import Database.PostgreSQL.Simple.FromField (FromField)
-import Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsStandardType (ViaIsStandardType (ViaIsStandardType))
+import Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsScalar (ViaIsScalar (ViaIsScalar))
 import Database.PostgreSQL.Simple.ToField
 import GHC.TypeLits
 import PostgresqlTypes
+import PostgresqlTypes.Algebra
 
-deriving via ViaIsStandardType (Bit length) instance (KnownNat length) => FromField (Bit length)
+deriving via ViaIsScalar (Bit length) instance (KnownNat length) => FromField (Bit length)
 
-deriving via ViaIsStandardType (Bit length) instance (KnownNat length) => ToField (Bit length)
+deriving via ViaIsScalar (Bit length) instance (KnownNat length) => ToField (Bit length)
 
-deriving via ViaIsStandardType (Bpchar length) instance (KnownNat length) => FromField (Bpchar length)
+deriving via ViaIsScalar (Bpchar length) instance (KnownNat length) => FromField (Bpchar length)
 
-deriving via ViaIsStandardType (Bpchar length) instance (KnownNat length) => ToField (Bpchar length)
+deriving via ViaIsScalar (Bpchar length) instance (KnownNat length) => ToField (Bpchar length)
 
 -- | Decoder of 'Multirange' types.
 --
 -- Notice that \"postgresql-simple\" has an issue due to which queries producing arrays of multiranges always fail. See https://github.com/haskellari/postgresql-simple/issues/163. In other cases everything should work fine.
-deriving via ViaIsStandardType (Multirange a) instance (IsMultirangeElement a, Typeable a) => FromField (Multirange a)
+deriving via ViaIsScalar (Multirange a) instance (IsMultirangeElement a, Typeable a) => FromField (Multirange a)
 
-deriving via ViaIsStandardType (Multirange a) instance (IsMultirangeElement a) => ToField (Multirange a)
+deriving via ViaIsScalar (Multirange a) instance (IsMultirangeElement a) => ToField (Multirange a)
 
-deriving via ViaIsStandardType (Range a) instance (IsRangeElement a, Typeable a) => FromField (Range a)
+deriving via ViaIsScalar (Range a) instance (IsRangeElement a, Typeable a) => FromField (Range a)
 
-deriving via ViaIsStandardType (Range a) instance (IsRangeElement a) => ToField (Range a)
+deriving via ViaIsScalar (Range a) instance (IsRangeElement a) => ToField (Range a)
 
-deriving via ViaIsStandardType Bool instance FromField Bool
+deriving via ViaIsScalar Bool instance FromField Bool
 
-deriving via ViaIsStandardType Bool instance ToField Bool
+deriving via ViaIsScalar Bool instance ToField Bool
 
-deriving via ViaIsStandardType Box instance FromField Box
+deriving via ViaIsScalar Box instance FromField Box
 
-deriving via ViaIsStandardType Box instance ToField Box
+deriving via ViaIsScalar Box instance ToField Box
 
-deriving via ViaIsStandardType Bytea instance FromField Bytea
+deriving via ViaIsScalar Bytea instance FromField Bytea
 
-deriving via ViaIsStandardType Bytea instance ToField Bytea
+deriving via ViaIsScalar Bytea instance ToField Bytea
 
-deriving via ViaIsStandardType Char instance FromField Char
+deriving via ViaIsScalar Char instance FromField Char
 
-deriving via ViaIsStandardType Char instance ToField Char
+deriving via ViaIsScalar Char instance ToField Char
 
-deriving via ViaIsStandardType Cidr instance FromField Cidr
+deriving via ViaIsScalar Cidr instance FromField Cidr
 
-deriving via ViaIsStandardType Cidr instance ToField Cidr
+deriving via ViaIsScalar Cidr instance ToField Cidr
 
-deriving via ViaIsStandardType Circle instance FromField Circle
+deriving via ViaIsScalar Circle instance FromField Circle
 
-deriving via ViaIsStandardType Circle instance ToField Circle
+deriving via ViaIsScalar Circle instance ToField Circle
 
-deriving via ViaIsStandardType Date instance FromField Date
+deriving via ViaIsScalar Date instance FromField Date
 
-deriving via ViaIsStandardType Date instance ToField Date
+deriving via ViaIsScalar Date instance ToField Date
 
-deriving via ViaIsStandardType Float4 instance FromField Float4
+deriving via ViaIsScalar Float4 instance FromField Float4
 
-deriving via ViaIsStandardType Float4 instance ToField Float4
+deriving via ViaIsScalar Float4 instance ToField Float4
 
-deriving via ViaIsStandardType Float8 instance FromField Float8
+deriving via ViaIsScalar Float8 instance FromField Float8
 
-deriving via ViaIsStandardType Float8 instance ToField Float8
+deriving via ViaIsScalar Float8 instance ToField Float8
 
-deriving via ViaIsStandardType Hstore instance FromField Hstore
+deriving via ViaIsScalar Hstore instance FromField Hstore
 
-deriving via ViaIsStandardType Hstore instance ToField Hstore
+deriving via ViaIsScalar Hstore instance ToField Hstore
 
-deriving via ViaIsStandardType Inet instance FromField Inet
+deriving via ViaIsScalar Inet instance FromField Inet
 
-deriving via ViaIsStandardType Inet instance ToField Inet
+deriving via ViaIsScalar Inet instance ToField Inet
 
-deriving via ViaIsStandardType Int2 instance FromField Int2
+deriving via ViaIsScalar Int2 instance FromField Int2
 
-deriving via ViaIsStandardType Int2 instance ToField Int2
+deriving via ViaIsScalar Int2 instance ToField Int2
 
-deriving via ViaIsStandardType Int4 instance FromField Int4
+deriving via ViaIsScalar Int4 instance FromField Int4
 
-deriving via ViaIsStandardType Int4 instance ToField Int4
+deriving via ViaIsScalar Int4 instance ToField Int4
 
-deriving via ViaIsStandardType Int8 instance FromField Int8
+deriving via ViaIsScalar Int8 instance FromField Int8
 
-deriving via ViaIsStandardType Int8 instance ToField Int8
+deriving via ViaIsScalar Int8 instance ToField Int8
 
-deriving via ViaIsStandardType Interval instance FromField Interval
+deriving via ViaIsScalar Interval instance FromField Interval
 
-deriving via ViaIsStandardType Interval instance ToField Interval
+deriving via ViaIsScalar Interval instance ToField Interval
 
-deriving via ViaIsStandardType IntervalAsMicroseconds instance FromField IntervalAsMicroseconds
+deriving via ViaIsScalar IntervalAsMicroseconds instance FromField IntervalAsMicroseconds
 
-deriving via ViaIsStandardType IntervalAsMicroseconds instance ToField IntervalAsMicroseconds
+deriving via ViaIsScalar IntervalAsMicroseconds instance ToField IntervalAsMicroseconds
 
-deriving via ViaIsStandardType Json instance FromField Json
+deriving via ViaIsScalar Json instance FromField Json
 
-deriving via ViaIsStandardType Json instance ToField Json
+deriving via ViaIsScalar Json instance ToField Json
 
-deriving via ViaIsStandardType Jsonb instance FromField Jsonb
+deriving via ViaIsScalar Jsonb instance FromField Jsonb
 
-deriving via ViaIsStandardType Jsonb instance ToField Jsonb
+deriving via ViaIsScalar Jsonb instance ToField Jsonb
 
-deriving via ViaIsStandardType Line instance FromField Line
+deriving via ViaIsScalar Line instance FromField Line
 
-deriving via ViaIsStandardType Line instance ToField Line
+deriving via ViaIsScalar Line instance ToField Line
 
-deriving via ViaIsStandardType Lseg instance FromField Lseg
+deriving via ViaIsScalar Lseg instance FromField Lseg
 
-deriving via ViaIsStandardType Lseg instance ToField Lseg
+deriving via ViaIsScalar Lseg instance ToField Lseg
 
-deriving via ViaIsStandardType Macaddr instance FromField Macaddr
+deriving via ViaIsScalar Macaddr instance FromField Macaddr
 
-deriving via ViaIsStandardType Macaddr instance ToField Macaddr
+deriving via ViaIsScalar Macaddr instance ToField Macaddr
 
-deriving via ViaIsStandardType Macaddr8 instance FromField Macaddr8
+deriving via ViaIsScalar Macaddr8 instance FromField Macaddr8
 
-deriving via ViaIsStandardType Macaddr8 instance ToField Macaddr8
+deriving via ViaIsScalar Macaddr8 instance ToField Macaddr8
 
-deriving via ViaIsStandardType Money instance FromField Money
+deriving via ViaIsScalar Money instance FromField Money
 
-deriving via ViaIsStandardType Money instance ToField Money
+deriving via ViaIsScalar Money instance ToField Money
 
-deriving via ViaIsStandardType Numeric instance FromField Numeric
+deriving via ViaIsScalar Numeric instance FromField Numeric
 
-deriving via ViaIsStandardType Numeric instance ToField Numeric
+deriving via ViaIsScalar Numeric instance ToField Numeric
 
-deriving via ViaIsStandardType Oid instance FromField Oid
+deriving via ViaIsScalar Oid instance FromField Oid
 
-deriving via ViaIsStandardType Oid instance ToField Oid
+deriving via ViaIsScalar Oid instance ToField Oid
 
-deriving via ViaIsStandardType Path instance FromField Path
+deriving via ViaIsScalar Path instance FromField Path
 
-deriving via ViaIsStandardType Path instance ToField Path
+deriving via ViaIsScalar Path instance ToField Path
 
-deriving via ViaIsStandardType Point instance FromField Point
+deriving via ViaIsScalar Point instance FromField Point
 
-deriving via ViaIsStandardType Point instance ToField Point
+deriving via ViaIsScalar Point instance ToField Point
 
-deriving via ViaIsStandardType Polygon instance FromField Polygon
+deriving via ViaIsScalar Polygon instance FromField Polygon
 
-deriving via ViaIsStandardType Polygon instance ToField Polygon
+deriving via ViaIsScalar Polygon instance ToField Polygon
 
-deriving via ViaIsStandardType Text instance FromField Text
+deriving via ViaIsScalar Text instance FromField Text
 
-deriving via ViaIsStandardType Text instance ToField Text
+deriving via ViaIsScalar Text instance ToField Text
 
-deriving via ViaIsStandardType Time instance FromField Time
+deriving via ViaIsScalar Time instance FromField Time
 
-deriving via ViaIsStandardType Time instance ToField Time
+deriving via ViaIsScalar Time instance ToField Time
 
-deriving via ViaIsStandardType Timestamp instance FromField Timestamp
+deriving via ViaIsScalar Timestamp instance FromField Timestamp
 
-deriving via ViaIsStandardType Timestamp instance ToField Timestamp
+deriving via ViaIsScalar Timestamp instance ToField Timestamp
 
-deriving via ViaIsStandardType Timestamptz instance FromField Timestamptz
+deriving via ViaIsScalar Timestamptz instance FromField Timestamptz
 
-deriving via ViaIsStandardType Timestamptz instance ToField Timestamptz
+deriving via ViaIsScalar Timestamptz instance ToField Timestamptz
 
-deriving via ViaIsStandardType Timetz instance FromField Timetz
+deriving via ViaIsScalar Timetz instance FromField Timetz
 
-deriving via ViaIsStandardType Timetz instance ToField Timetz
+deriving via ViaIsScalar Timetz instance ToField Timetz
 
-deriving via ViaIsStandardType TimetzAsTimeOfDayAndTimeZone instance FromField TimetzAsTimeOfDayAndTimeZone
+deriving via ViaIsScalar TimetzAsTimeOfDayAndTimeZone instance FromField TimetzAsTimeOfDayAndTimeZone
 
-deriving via ViaIsStandardType TimetzAsTimeOfDayAndTimeZone instance ToField TimetzAsTimeOfDayAndTimeZone
+deriving via ViaIsScalar TimetzAsTimeOfDayAndTimeZone instance ToField TimetzAsTimeOfDayAndTimeZone
 
-deriving via ViaIsStandardType Uuid instance FromField Uuid
+deriving via ViaIsScalar Uuid instance FromField Uuid
 
-deriving via ViaIsStandardType Uuid instance ToField Uuid
+deriving via ViaIsScalar Uuid instance ToField Uuid
 
-deriving via ViaIsStandardType Varbit instance FromField Varbit
+deriving via ViaIsScalar Varbit instance FromField Varbit
 
-deriving via ViaIsStandardType Varbit instance ToField Varbit
+deriving via ViaIsScalar Varbit instance ToField Varbit
 
-deriving via ViaIsStandardType Varchar instance FromField Varchar
+deriving via ViaIsScalar Varchar instance FromField Varchar
 
-deriving via ViaIsStandardType Varchar instance ToField Varchar
+deriving via ViaIsScalar Varchar instance ToField Varchar

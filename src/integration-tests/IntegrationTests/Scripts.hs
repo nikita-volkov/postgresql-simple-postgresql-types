@@ -13,7 +13,7 @@ import qualified Database.PostgreSQL.Simple.FromField as Ps
 import qualified Database.PostgreSQL.Simple.PostgresqlTypes ()
 import qualified Database.PostgreSQL.Simple.ToField as Ps
 import qualified Database.PostgreSQL.Simple.Types as Ps
-import qualified PostgresqlTypes as Pt
+import qualified PostgresqlTypes.Algebra as Pta
 import Test.Hspec
 import Test.QuickCheck ((===))
 import qualified Test.QuickCheck as QuickCheck
@@ -26,7 +26,7 @@ mappingSpec ::
     QuickCheck.Arbitrary a,
     Show a,
     Eq a,
-    Pt.IsStandardType a,
+    Pta.IsScalar a,
     Ps.ToField a,
     Ps.FromField a,
     Typeable a
@@ -36,7 +36,7 @@ mappingSpec ::
   Proxy a ->
   SpecWith Ps.Connection
 mappingSpec arraysEnabled _ = do
-  let typeSignature = untag (Pt.typeSignature @a)
+  let typeSignature = untag (Pta.typeSignature @a)
 
   describe "Single value roundtrip" do
     it "Should encode and decode to the same value" \(connection :: Ps.Connection) ->
