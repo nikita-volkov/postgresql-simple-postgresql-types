@@ -53,7 +53,10 @@ instance (Typeable a, Pt.IsStandardType a) => FromField (ViaIsStandardType a) wh
 -- >   toField = toFieldVia
 toFieldVia :: forall a. (Pt.IsStandardType a) => a -> Action
 toFieldVia value =
-  Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pt.textualEncoder value)))
+  Many
+    [ Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pt.textualEncoder value))),
+      Plain ("::" <> TextEncoding.encodeUtf8Builder (untag (Pt.typeSignature @a)))
+    ]
 
 -- | Parse a postgresql-types value from a postgresql-simple field.
 --
