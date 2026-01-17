@@ -78,44 +78,42 @@ fromFieldVia field mdata = do
       expectedTypeName = untag (Pt.typeName @a)
       fieldOid = typeOid field
 
-  -- Only call typename if we need it for validation (when OID is not available)
-  let needTypenameValidation = case (expectedArrayOid, expectedBaseOid) of
-        (Nothing, Nothing) -> True -- No OID info, need typename
-        _ -> False -- Have OID info, can skip typename lookup
-  when needTypenameValidation do
-    fieldTypeName <- typename field
-    let expectedName = TextEncoding.encodeUtf8 expectedTypeName
-    unless (fieldTypeName == expectedName) do
-      returnError Incompatible field $
-        mconcat
-          [ "Type mismatch: expected ",
-            Text.unpack expectedTypeName,
-            " (OID unknown) but got field with type name ",
-            show (TextEncoding.decodeUtf8With TextEncoding.lenientDecode fieldTypeName)
-          ]
+  if isNothing expectedBaseOid || isNothing expectedArrayOid
+    -- Only call typename if we need it for validation (when OID is not available)
+    then do
+      fieldTypeName <- typename field
+      let expectedName = TextEncoding.encodeUtf8 expectedTypeName
+      unless (fieldTypeName == expectedName) do
+        returnError Incompatible field $
+          mconcat
+            [ "Type mismatch: expected ",
+              Text.unpack expectedTypeName,
+              " (OID unknown) but got field with type name ",
+              show (TextEncoding.decodeUtf8With TextEncoding.lenientDecode fieldTypeName)
+            ]
 
-  -- For types with known OIDs, validate against OID without calling typename
-  when (not needTypenameValidation) do
-    let typeMatches = case (expectedArrayOid, expectedBaseOid) of
-          -- For array types, check against arrayOid
-          (Just arrOid, _) | fieldOid == Oid (fromIntegral arrOid) -> True
-          -- For non-array types, check against baseOid
-          (_, Just oid) | fieldOid == Oid (fromIntegral oid) -> True
-          _ -> False
+    -- For types with known OIDs, validate against OID without calling typename
+    else do
+      let typeMatches = case (expectedArrayOid, expectedBaseOid) of
+            -- For array types, check against arrayOid
+            (Just arrOid, _) | fieldOid == Oid (fromIntegral arrOid) -> True
+            -- For non-array types, check against baseOid
+            (_, Just oid) | fieldOid == Oid (fromIntegral oid) -> True
+            _ -> False
 
-    unless typeMatches do
-      returnError Incompatible field $
-        mconcat
-          [ "Type mismatch: expected ",
-            Text.unpack expectedTypeName,
-            " (OID ",
-            maybe "unknown" show expectedBaseOid,
-            case expectedArrayOid of
-              Just arrOid -> ", array OID " <> show arrOid
-              Nothing -> "",
-            ") but got field with OID ",
-            show fieldOid
-          ]
+      unless typeMatches do
+        returnError Incompatible field $
+          mconcat
+            [ "Type mismatch: expected ",
+              Text.unpack expectedTypeName,
+              " (OID ",
+              maybe "unknown" show expectedBaseOid,
+              case expectedArrayOid of
+                Just arrOid -> ", array OID " <> show arrOid
+                Nothing -> "",
+              ") but got field with OID ",
+              show fieldOid
+            ]
 
   -- Data validation and parsing
   case mdata of
