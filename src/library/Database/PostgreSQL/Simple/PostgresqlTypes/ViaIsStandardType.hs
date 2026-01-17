@@ -53,7 +53,10 @@ instance (Typeable a, Pt.IsStandardType a) => FromField (ViaIsStandardType a) wh
 -- >   toField = toFieldVia
 toFieldVia :: forall a. (Pt.IsStandardType a) => a -> Action
 toFieldVia value =
-  Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pt.textualEncoder value)))
+  Many
+    [ Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pt.textualEncoder value))),
+      Plain ("::" <> TextEncoding.encodeUtf8Builder (untag (Pt.typeSignature @a)))
+    ]
 
 -- | Parse a postgresql-types value from a postgresql-simple field.
 --
@@ -75,50 +78,48 @@ fromFieldVia field mdata = do
       expectedTypeName = untag (Pt.typeName @a)
       fieldOid = typeOid field
 
-  fieldTypeName <- typename field
+  case (expectedBaseOid, expectedArrayOid) of
+    -- For types with known OIDs, validate against OID without calling typename
+    (Just expectedBaseOid, Just expectedArrayOid) -> do
+      let typeMatches =
+            fieldOid == Oid (fromIntegral expectedBaseOid)
+              || fieldOid == Oid (fromIntegral expectedArrayOid)
 
-  -- Check if this is an array type by looking at the field's typename
-  -- PostgreSQL array types start with '_'
-  let isArrayField =
-        let nameText = TextEncoding.decodeUtf8With TextEncoding.lenientDecode fieldTypeName
-         in Text.take 1 nameText == "_"
+      unless typeMatches do
+        returnError Incompatible field $
+          mconcat
+            [ "Type mismatch: expected ",
+              Text.unpack expectedTypeName,
+              " (OID ",
+              show expectedBaseOid,
+              ", array OID " <> show expectedArrayOid,
+              ") but got field with OID ",
+              show fieldOid
+            ]
 
-      typeMatches = case (isArrayField, expectedArrayOid, expectedBaseOid) of
-        -- For array fields, check against arrayOid
-        (True, Just arrOid, _) -> fieldOid == Oid (fromIntegral arrOid)
-        -- For non-array fields, check against baseOid
-        (False, _, Just oid) -> fieldOid == Oid (fromIntegral oid)
-        -- Fallback to typename comparison when OID not available
-        _ ->
-          let expectedName = TextEncoding.encodeUtf8 (if isArrayField then "_" <> expectedTypeName else expectedTypeName)
-           in fieldTypeName == expectedName
-
-  unless typeMatches do
-    returnError Incompatible field
-      $ mconcat
-        [ "Type mismatch: expected ",
-          Text.unpack expectedTypeName,
-          " (OID ",
-          maybe "unknown" show expectedBaseOid,
-          case expectedArrayOid of
-            Just arrOid -> ", array OID " <> show arrOid
-            Nothing -> "",
-          ") but got field with OID ",
-          show fieldOid
-        ]
+    -- Only call typename if we need it for validation (when OID is not available)
+    _ -> do
+      fieldTypeName <- typename field
+      let expectedName = TextEncoding.encodeUtf8 expectedTypeName
+      unless (fieldTypeName == expectedName) do
+        returnError Incompatible field $
+          mconcat
+            [ "Type mismatch: expected ",
+              Text.unpack expectedTypeName,
+              " (OID unknown) but got field with type name ",
+              show (TextEncoding.decodeUtf8With TextEncoding.lenientDecode fieldTypeName)
+            ]
 
   -- Data validation and parsing
   case mdata of
     Nothing -> returnError UnexpectedNull field ""
     Just bytes -> case TextEncoding.decodeUtf8' bytes of
       Left err ->
-        returnError ConversionFailed field
-          $ "UTF-8 decoding failed: "
-          <> show err
+        returnError ConversionFailed field $
+          "UTF-8 decoding failed: " <> show err
       Right text ->
         case Attoparsec.parseOnly (Pt.textualDecoder @a <* Attoparsec.endOfInput) text of
           Left err ->
-            returnError ConversionFailed field
-              $ "Parsing failed: "
-              <> err
+            returnError ConversionFailed field $
+              "Parsing failed: " <> err
           Right value -> pure value

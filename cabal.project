@@ -8,4 +8,4 @@ allow-newer:
 source-repository-package
   type: git
   location: https://github.com/nikita-volkov/postgresql-types
-  tag: c492f1bcd8664321f994746dc0302d478c0e9742
+  tag: 04647b09cfe497c0f545f81306db4da33bfb4008
