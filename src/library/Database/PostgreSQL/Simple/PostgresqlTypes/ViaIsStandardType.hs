@@ -78,9 +78,27 @@ fromFieldVia field mdata = do
       expectedTypeName = untag (Pt.typeName @a)
       fieldOid = typeOid field
 
-  if isNothing expectedBaseOid || isNothing expectedArrayOid
+  case (expectedBaseOid, expectedArrayOid) of
+    -- For types with known OIDs, validate against OID without calling typename
+    (Just expectedBaseOid, Just expectedArrayOid) -> do
+      let typeMatches =
+            fieldOid == Oid (fromIntegral expectedBaseOid)
+              || fieldOid == Oid (fromIntegral expectedArrayOid)
+
+      unless typeMatches do
+        returnError Incompatible field $
+          mconcat
+            [ "Type mismatch: expected ",
+              Text.unpack expectedTypeName,
+              " (OID ",
+              show expectedBaseOid,
+              ", array OID " <> show expectedArrayOid,
+              ") but got field with OID ",
+              show fieldOid
+            ]
+
     -- Only call typename if we need it for validation (when OID is not available)
-    then do
+    _ -> do
       fieldTypeName <- typename field
       let expectedName = TextEncoding.encodeUtf8 expectedTypeName
       unless (fieldTypeName == expectedName) do
@@ -90,29 +108,6 @@ fromFieldVia field mdata = do
               Text.unpack expectedTypeName,
               " (OID unknown) but got field with type name ",
               show (TextEncoding.decodeUtf8With TextEncoding.lenientDecode fieldTypeName)
-            ]
-
-    -- For types with known OIDs, validate against OID without calling typename
-    else do
-      let typeMatches = case (expectedArrayOid, expectedBaseOid) of
-            -- For array types, check against arrayOid
-            (Just arrOid, _) | fieldOid == Oid (fromIntegral arrOid) -> True
-            -- For non-array types, check against baseOid
-            (_, Just oid) | fieldOid == Oid (fromIntegral oid) -> True
-            _ -> False
-
-      unless typeMatches do
-        returnError Incompatible field $
-          mconcat
-            [ "Type mismatch: expected ",
-              Text.unpack expectedTypeName,
-              " (OID ",
-              maybe "unknown" show expectedBaseOid,
-              case expectedArrayOid of
-                Just arrOid -> ", array OID " <> show arrOid
-                Nothing -> "",
-              ") but got field with OID ",
-              show fieldOid
             ]
 
   -- Data validation and parsing
