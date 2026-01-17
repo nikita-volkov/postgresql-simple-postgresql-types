@@ -15,3 +15,5 @@ jobs:
   build:
     uses: ./.github/workflows/build.yaml
     secrets: inherit
+    with:
+      qc-max-success: 1000
