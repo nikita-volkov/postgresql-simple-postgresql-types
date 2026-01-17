@@ -12,6 +12,7 @@ license: MIT
 license-file: LICENSE
 extra-doc-files:
   LICENSE
+  README.md
 
 source-repository head
   type: git
