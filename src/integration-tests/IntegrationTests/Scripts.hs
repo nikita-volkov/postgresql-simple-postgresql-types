@@ -35,17 +35,15 @@ mappingSpec ::
   SpecWith Ps.Connection
 mappingSpec _ = do
   let typeSignature = untag (Pt.typeSignature @a)
-  
+
   describe "Single value roundtrip" do
     it "Should encode and decode to the same value" \(connection :: Ps.Connection) ->
       QuickCheck.property \(value :: a) -> do
         QuickCheck.idempotentIOProperty do
-          -- Use postgresql-simple to roundtrip the value with explicit type casting
-          results <-
-            Ps.query
-              connection
-              "SELECT ?"
-              (Ps.Only value)
+          let query = "SELECT ?"
+          let params = Ps.Only value
+
+          results <- Ps.query connection query params
           case results of
             [Ps.Only (decoded :: a)] -> do
               pure (decoded === value)
