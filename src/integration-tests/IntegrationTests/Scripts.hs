@@ -31,9 +31,11 @@ mappingSpec ::
     Ps.FromField a,
     Typeable a
   ) =>
+  -- | Whether to test arrays.
+  Bool ->
   Proxy a ->
   SpecWith Ps.Connection
-mappingSpec _ = do
+mappingSpec arraysEnabled _ = do
   let typeSignature = untag (Pt.typeSignature @a)
 
   describe "Single value roundtrip" do
@@ -50,23 +52,24 @@ mappingSpec _ = do
             _ -> do
               fail $ "Expected exactly one result, got: " <> show (length results)
 
-  describe "Array roundtrip" do
-    it "Should encode and decode arrays correctly" \(connection :: Ps.Connection) ->
-      QuickCheck.property \(values :: [a]) -> do
-        QuickCheck.idempotentIOProperty do
-          let query =
-                Ps.Query
-                  ( Text.encodeUtf8
-                      ("SELECT ?::" <> typeSignature <> "[]")
-                  )
+  when arraysEnabled do
+    describe "Array roundtrip" do
+      it "Should encode and decode arrays correctly" \(connection :: Ps.Connection) ->
+        QuickCheck.property \(values :: [a]) -> do
+          QuickCheck.idempotentIOProperty do
+            let query =
+                  Ps.Query
+                    ( Text.encodeUtf8
+                        ("SELECT ?::" <> typeSignature <> "[]")
+                    )
 
-          -- Use postgresql-simple to roundtrip array values with explicit type casting
-          results <- Ps.query connection query (Ps.Only (Ps.PGArray values))
-          case results of
-            [Ps.Only (Ps.PGArray (decoded :: [a]))] -> do
-              pure (decoded === values)
-            _ -> do
-              fail $ "Expected exactly one array result, got: " <> show (length results)
+            -- Use postgresql-simple to roundtrip array values with explicit type casting
+            results <- Ps.query connection query (Ps.Only (Ps.PGArray values))
+            case results of
+              [Ps.Only (Ps.PGArray (decoded :: [a]))] -> do
+                pure (decoded === values)
+              _ -> do
+                fail $ "Expected exactly one array result, got: " <> show (length results)
 
   describe "NULL handling" do
     it "Should decode NULL values appropriately" \(connection :: Ps.Connection) -> do

@@ -36,6 +36,9 @@ deriving via ViaIsStandardType (Bpchar length) instance (KnownNat length) => Fro
 
 deriving via ViaIsStandardType (Bpchar length) instance (KnownNat length) => ToField (Bpchar length)
 
+-- | Decoder of 'Multirange' types.
+--
+-- Notice that \"postgresql-simple\" has an issue due to which queries producing arrays of multiranges always fail. See https://github.com/haskellari/postgresql-simple/issues/163. In other cases everything should work fine.
 deriving via ViaIsStandardType (Multirange a) instance (IsMultirangeElement a, Typeable a) => FromField (Multirange a)
 
 deriving via ViaIsStandardType (Multirange a) instance (IsMultirangeElement a) => ToField (Multirange a)
