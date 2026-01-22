@@ -47,11 +47,9 @@ common base
     MultiParamTypeClasses
     MultiWayIf
     NamedFieldPuns
-    NoFieldSelectors
     NoImplicitPrelude
     NoMonomorphismRestriction
     NumericUnderscores
-    OverloadedRecordDot
     OverloadedStrings
     ParallelListComp
     PatternGuards
@@ -98,7 +96,7 @@ library
     attoparsec ^>=0.14.4,
     base >=4.11 && <5,
     postgresql-simple >=0.7.0.1 && <0.8,
-    postgresql-types,
+    postgresql-types ^>=0.1,
     postgresql-types-algebra ^>=0.1,
     tagged ^>=0.8.9,
     text >=1.2 && <3,
@@ -120,7 +118,7 @@ test-suite integration-tests
     hspec >=2.11 && <3,
     postgresql-simple >=0.7.0.1 && <0.8,
     postgresql-simple-postgresql-types,
-    postgresql-types,
+    postgresql-types ^>=0.1,
     postgresql-types-algebra ^>=0.1,
     quickcheck-instances ^>=0.3.33,
     stm >=2.5 && <3,
