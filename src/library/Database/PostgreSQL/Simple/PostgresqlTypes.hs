@@ -37,6 +37,18 @@ deriving via ViaIsScalar (Bpchar length) instance (KnownNat length) => FromField
 
 deriving via ViaIsScalar (Bpchar length) instance (KnownNat length) => ToField (Bpchar length)
 
+deriving via ViaIsScalar (Numeric precision scale) instance (KnownNat precision, KnownNat scale) => FromField (Numeric precision scale)
+
+deriving via ViaIsScalar (Numeric precision scale) instance (KnownNat precision, KnownNat scale) => ToField (Numeric precision scale)
+
+deriving via ViaIsScalar (Varbit maxLen) instance (KnownNat maxLen) => FromField (Varbit maxLen)
+
+deriving via ViaIsScalar (Varbit maxLen) instance (KnownNat maxLen) => ToField (Varbit maxLen)
+
+deriving via ViaIsScalar (Varchar maxLen) instance (KnownNat maxLen) => FromField (Varchar maxLen)
+
+deriving via ViaIsScalar (Varchar maxLen) instance (KnownNat maxLen) => ToField (Varchar maxLen)
+
 -- | Decoder of 'Multirange' types.
 --
 -- Notice that \"postgresql-simple\" has an issue due to which queries producing arrays of multiranges always fail. See https://github.com/haskellari/postgresql-simple/issues/163. In other cases everything should work fine.
@@ -108,10 +120,6 @@ deriving via ViaIsScalar Interval instance FromField Interval
 
 deriving via ViaIsScalar Interval instance ToField Interval
 
-deriving via ViaIsScalar IntervalAsMicroseconds instance FromField IntervalAsMicroseconds
-
-deriving via ViaIsScalar IntervalAsMicroseconds instance ToField IntervalAsMicroseconds
-
 deriving via ViaIsScalar Json instance FromField Json
 
 deriving via ViaIsScalar Json instance ToField Json
@@ -139,10 +147,6 @@ deriving via ViaIsScalar Macaddr8 instance ToField Macaddr8
 deriving via ViaIsScalar Money instance FromField Money
 
 deriving via ViaIsScalar Money instance ToField Money
-
-deriving via ViaIsScalar Numeric instance FromField Numeric
-
-deriving via ViaIsScalar Numeric instance ToField Numeric
 
 deriving via ViaIsScalar Oid instance FromField Oid
 
@@ -180,18 +184,6 @@ deriving via ViaIsScalar Timetz instance FromField Timetz
 
 deriving via ViaIsScalar Timetz instance ToField Timetz
 
-deriving via ViaIsScalar TimetzAsTimeOfDayAndTimeZone instance FromField TimetzAsTimeOfDayAndTimeZone
-
-deriving via ViaIsScalar TimetzAsTimeOfDayAndTimeZone instance ToField TimetzAsTimeOfDayAndTimeZone
-
 deriving via ViaIsScalar Uuid instance FromField Uuid
 
 deriving via ViaIsScalar Uuid instance ToField Uuid
-
-deriving via ViaIsScalar Varbit instance FromField Varbit
-
-deriving via ViaIsScalar Varbit instance ToField Varbit
-
-deriving via ViaIsScalar Varchar instance FromField Varchar
-
-deriving via ViaIsScalar Varchar instance ToField Varchar
