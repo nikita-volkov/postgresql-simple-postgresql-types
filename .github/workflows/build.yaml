@@ -27,7 +27,7 @@ jobs:
       skip-doctest: true
       skip-benchmarks: true
       test-options: >
-        --qc-max-success=${{ inputs.qc-max-success }}
+        --qc-max-success=100
 
   build-with-latest:
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/build.yaml@v4
