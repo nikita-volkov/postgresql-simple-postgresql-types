@@ -17,14 +17,9 @@ jobs:
     uses: ./.github/workflows/build.yaml
     secrets: inherit
 
-  generate-docs:
-    uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/generate-docs.yaml@v4
-    secrets: inherit
-
   release:
     needs:
       - build
-      - generate-docs
     uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/release.yaml@v4
     secrets: inherit
     with:
