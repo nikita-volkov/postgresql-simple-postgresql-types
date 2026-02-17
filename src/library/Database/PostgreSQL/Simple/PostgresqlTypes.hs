@@ -184,6 +184,10 @@ deriving via ViaIsScalar Timetz instance FromField Timetz
 
 deriving via ViaIsScalar Timetz instance ToField Timetz
 
+deriving via ViaIsScalar Tsvector instance FromField Tsvector
+
+deriving via ViaIsScalar Tsvector instance ToField Tsvector
+
 deriving via ViaIsScalar Uuid instance FromField Uuid
 
 deriving via ViaIsScalar Uuid instance ToField Uuid
