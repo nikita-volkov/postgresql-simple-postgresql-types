@@ -4,10 +4,11 @@ on:
   push:
     branches: [main, master]
 
-# Prevent overlapping publishes on rapid pushes
+# Shares a group with release.yaml so a release run can't race the format
+# job's auto-commit to master (which was causing non-fast-forward push failures).
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: master-write-lock
+  cancel-in-progress: false
 
 permissions:
   contents: write
