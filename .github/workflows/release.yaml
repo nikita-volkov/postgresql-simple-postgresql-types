@@ -18,7 +18,7 @@ on:
         required: true
 
 concurrency:
-  group: master-write-lock
+  group: release
   cancel-in-progress: false
 
 permissions:
@@ -62,16 +62,10 @@ jobs:
     uses: ./.github/workflows/build.yaml
     secrets: inherit
 
-  generate-docs:
-    needs: validate-version
-    uses: nikita-volkov/haskell-hackage-lib-github-actions-workflows/.github/workflows/generate-docs.yaml@v4
-    secrets: inherit
-
   release:
     needs:
       - validate-changelog
       - build
-      - generate-docs
     runs-on: ubuntu-latest
     environment:
       name: hackage
@@ -106,6 +100,15 @@ jobs:
 
       - name: Generate package dist
         run: cabal sdist
+
+      - name: Update cabal package index
+        run: cabal update
+
+      - name: Generate documentation for Hackage
+        run: |
+          cabal_file=$(find . -maxdepth 1 -name "*.cabal" -print -quit)
+          package_name=$(awk -F ":[[:space:]]*" 'tolower($1)=="name" { gsub(/^[[:space:]]+|[[:space:]]+$/, "", $2); print $2 }' < "$cabal_file")
+          cabal haddock --haddock-for-hackage "$package_name"
 
       - name: Publish on Hackage
         uses: haskell-actions/hackage-publish@v1.1
