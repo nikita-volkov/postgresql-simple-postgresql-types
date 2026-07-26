@@ -90,14 +90,14 @@ library
 
   other-modules:
     Database.PostgreSQL.Simple.PostgresqlTypes.Prelude
-    Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsScalar
+    Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsPrimitive
 
   build-depends:
     attoparsec ^>=0.14.4,
     base >=4.11 && <5,
     postgresql-simple >=0.7.0.1 && <0.8,
-    postgresql-types ^>=0.1,
-    postgresql-types-algebra ^>=0.1,
+    postgresql-types ^>=0.1.5,
+    postgresql-types-algebra ^>=0.2,
     tagged ^>=0.8.9,
     text >=1.2 && <3,
     text-builder ^>=1.0.0.5,
@@ -118,8 +118,8 @@ test-suite integration-tests
     hspec >=2.11 && <3,
     postgresql-simple >=0.7.0.1 && <0.8,
     postgresql-simple-postgresql-types,
-    postgresql-types ^>=0.1,
-    postgresql-types-algebra ^>=0.1,
+    postgresql-types ^>=0.1.5,
+    postgresql-types-algebra ^>=0.2,
     quickcheck-instances ^>=0.3.33,
     stm >=2.5 && <3,
     tagged ^>=0.8.9,

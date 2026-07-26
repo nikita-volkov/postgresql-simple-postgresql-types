@@ -2,7 +2,7 @@
 
 -- |
 -- This module provides a bridge between PostgreSQL's standard types and the postgresql-simple library,
--- offering automatic ToField and FromField instance generation for types that implement the 'IsScalar' constraint.
+-- offering automatic ToField and FromField instance generation for types that implement the 'IsPrimitive' constraint.
 --
 -- = Usage
 --
@@ -19,11 +19,11 @@
 --
 -- = How it works
 --
--- * 'toFieldVia' creates a 'ToField' compatible 'Action' using the 'textualEncoder' from 'Pta.IsScalar'
--- * 'fromFieldVia' creates a 'FromField' compatible parser using the 'textualDecoder' from 'Pta.IsScalar'
+-- * 'toFieldVia' creates a 'ToField' compatible 'Action' using the 'textualEncoder' from 'Pta.IsPrimitive'
+-- * 'fromFieldVia' creates a 'FromField' compatible parser using the 'textualDecoder' from 'Pta.IsPrimitive'
 --
 -- The module uses textual format for encoding/decoding since that's what postgresql-simple primarily uses.
-module Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsScalar (ViaIsScalar (..)) where
+module Database.PostgreSQL.Simple.PostgresqlTypes.ViaIsPrimitive (ViaIsPrimitive (..)) where
 
 import qualified Data.Attoparsec.Text as Attoparsec
 import qualified Data.Text as Text
@@ -36,22 +36,22 @@ import Database.PostgreSQL.Simple.ToField
 import qualified PostgresqlTypes.Algebra as Pta
 import qualified TextBuilder
 
-newtype ViaIsScalar a = ViaIsScalar a
+newtype ViaIsPrimitive a = ViaIsPrimitive a
 
-instance (Pta.IsScalar a) => ToField (ViaIsScalar a) where
-  toField (ViaIsScalar value) = toFieldVia value
+instance (Pta.IsPrimitive a) => ToField (ViaIsPrimitive a) where
+  toField (ViaIsPrimitive value) = toFieldVia value
 
-instance (Typeable a, Pta.IsScalar a) => FromField (ViaIsScalar a) where
-  fromField field mdata = ViaIsScalar <$> fromFieldVia field mdata
+instance (Typeable a, Pta.IsPrimitive a) => FromField (ViaIsPrimitive a) where
+  fromField field mdata = ViaIsPrimitive <$> fromFieldVia field mdata
 
 -- | Convert a postgresql-types value to a postgresql-simple 'Action'.
 --
--- This function uses the textual encoder from 'IsScalar' to produce
+-- This function uses the textual encoder from 'IsPrimitive' to produce
 -- an escaped text value suitable for use in SQL queries.
 --
 -- > instance ToField Int4 where
 -- >   toField = toFieldVia
-toFieldVia :: forall a. (Pta.IsScalar a) => a -> Action
+toFieldVia :: forall a. (Pta.IsPrimitive a) => a -> Action
 toFieldVia value =
   Many
     [ Escape (TextEncoding.encodeUtf8 (TextBuilder.toText (Pta.textualEncoder value))),
@@ -60,7 +60,7 @@ toFieldVia value =
 
 -- | Parse a postgresql-types value from a postgresql-simple field.
 --
--- This function uses the textual decoder from 'Pta.IsScalar' to parse
+-- This function uses the textual decoder from 'Pta.IsPrimitive' to parse
 -- values received from PostgreSQL in text format.
 --
 -- It validates the field's type by comparing:
@@ -70,7 +70,7 @@ toFieldVia value =
 --
 -- > instance FromField Int4 where
 -- >   fromField = fromFieldVia
-fromFieldVia :: forall a. (Typeable a, Pta.IsScalar a) => FieldParser a
+fromFieldVia :: forall a. (Typeable a, Pta.IsPrimitive a) => FieldParser a
 fromFieldVia field mdata = do
   -- Type validation: check OID or name
   let expectedBaseOid = untag (Pta.baseOid @a)

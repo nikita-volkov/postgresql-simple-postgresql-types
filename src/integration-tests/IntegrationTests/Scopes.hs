@@ -53,6 +53,7 @@ withConnectionPool poolSize =
       void do
         Ps.execute_ connection "SET client_min_messages TO WARNING"
       createExtensionIfNotExists connection "hstore"
+      createExtensionIfNotExists connection "citext"
       pure connection
       where
         createExtensionIfNotExists connection extension =

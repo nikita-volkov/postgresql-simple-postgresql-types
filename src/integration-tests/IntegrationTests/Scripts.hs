@@ -26,7 +26,7 @@ mappingSpec ::
     QuickCheck.Arbitrary a,
     Show a,
     Eq a,
-    Pta.IsScalar a,
+    Pta.IsPrimitive a,
     Ps.ToField a,
     Ps.FromField a,
     Typeable a
